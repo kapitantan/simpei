@@ -1,0 +1,2 @@
+- React + TypeScript。Vite標準構成。ESLint(typescript-eslint + react)のベース設定のみ。
+- 今のところ特別なフォーマッタは未導入。React Hooksベースで状態管理し、ゲームロジックはsrc/game、通信層はsrc/network、コンポーネントはsrc/componentsに分離する方針。Tailwind CSSを使う予定。

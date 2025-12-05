@@ -1,0 +1,1 @@
+- コード変更後は `npm run lint` と `npm run build` で型・ビルド確認を行う。テストは未整備なので主要ロジックには手動確認やStory/DevServerでの動作チェックが必要。

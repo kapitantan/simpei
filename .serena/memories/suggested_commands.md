@@ -1,0 +1,4 @@
+- `npm run dev` : Viteの開発サーバーを起動。
+- `npm run build` : TypeScriptのincremental build + Vite build。
+- `npm run preview` : 本番ビルドをローカル確認。
+- `npm run lint` : ESLint(TypeScript/React)実行。

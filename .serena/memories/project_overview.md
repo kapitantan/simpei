@@ -1,0 +1,1 @@
+- React + TypeScript + Vite 製のブラウザゲーム「シンペイ」を作成する。WebRTC(PeerJS)を用いたP2P通信で2人対戦を実現し、ゲームロジックやUIはフロントエンドのみで完結させる計画。docsとしてAGENTS.mdとrule.mdがあり、ゲーム仕様とアーキテクチャ方針を定義している。

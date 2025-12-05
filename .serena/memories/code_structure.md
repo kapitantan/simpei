@@ -1,0 +1,3 @@
+- ルート: Vite標準(README.md, package.json, vite.config.ts, tsconfig.*)。
+- docs: AGENTS.md(アーキ概要)とrule.md(ゲームルール)。
+- src/: main.tsx, App.tsx, CSS群。今後src/game, src/network, src/componentsに整理して実装予定。
