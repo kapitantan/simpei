@@ -64,3 +64,25 @@ export const countPiecesOnLayer = (board: Board, layer: Layer, player: PlayerCol
 
 export const isUpperCentralCell = (position: Position): boolean =>
   position.layer === 'upper' && position.x >= 1 && position.x <= 2 && position.y >= 1 && position.y <= 2
+
+export const areSamePosition = (a: Position, b: Position) => a.layer === b.layer && a.x === b.x && a.y === b.y
+
+export const getAdjacentPositions = (position: Position): Position[] => {
+  if (position.layer === 'upper') {
+    const xs = [position.x - 1, position.x].filter((value) => value >= 0 && value < BOARD_SIZES.lower.width)
+    const ys = [position.y - 1, position.y].filter((value) => value >= 0 && value < BOARD_SIZES.lower.height)
+    const neighbors: Position[] = []
+    xs.forEach((x) => {
+      ys.forEach((y) => neighbors.push({ layer: 'lower', x, y }))
+    })
+    return neighbors
+  }
+
+  const xs = [position.x, position.x + 1].filter((value) => value >= 0 && value < BOARD_SIZES.upper.width)
+  const ys = [position.y, position.y + 1].filter((value) => value >= 0 && value < BOARD_SIZES.upper.height)
+  const neighbors: Position[] = []
+  xs.forEach((x) => {
+    ys.forEach((y) => neighbors.push({ layer: 'upper', x, y }))
+  })
+  return neighbors
+}

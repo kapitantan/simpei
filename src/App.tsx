@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import CombinedBoard from './components/CombinedBoard'
-import { getCell, listPositions } from './game/board'
+import { getAdjacentPositions, getCell, listPositions } from './game/board'
 import { applyMove, canPlayerMove, createInitialState } from './game/logic'
 import type { GameMove, GameState, PlayerColor, Position, SandAssignment } from './game/types'
 import { peerConnectionOptions } from './network/config'
@@ -139,11 +139,10 @@ function App() {
 
     if (gameState.phase === 'placing') {
       const upperCells = listPositions('upper').filter((pos) => getCell(gameState.board, pos) === 'empty')
-      const lowerCells = listPositions('lower').filter((pos) => getCell(gameState.board, pos) === 'empty')
       if (gameState.turnCount === 0) {
         return upperCells.filter((pos) => pos.x >= 1 && pos.x <= 2 && pos.y >= 1 && pos.y <= 2)
       }
-      return [...upperCells, ...lowerCells]
+      return upperCells
     }
 
     if (gameState.phase === 'moving') {
@@ -152,8 +151,7 @@ function App() {
           .flatMap((layer) => listPositions(layer))
           .filter((pos) => getCell(gameState.board, pos) === controllingColor)
       }
-      const targetLayer = selectedFrom.layer === 'upper' ? 'lower' : 'upper'
-      return listPositions(targetLayer).filter((pos) => getCell(gameState.board, pos) === 'empty')
+      return getAdjacentPositions(selectedFrom).filter((pos) => getCell(gameState.board, pos) === 'empty')
     }
 
     return []
@@ -221,6 +219,9 @@ function App() {
       if (!canInteract) return
 
       if (gameState.phase === 'placing') {
+        if (position.layer !== 'upper') {
+          return
+        }
         tryMove({ type: 'place', to: position })
         return
       }

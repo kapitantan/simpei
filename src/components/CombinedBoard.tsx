@@ -61,7 +61,10 @@ const CombinedBoard = ({
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
-      <p className="text-sm text-slate-300 mb-4">4×4（上の世界）の中央に 3×3（下の世界）が重なっています</p>
+      <p className="text-sm text-slate-300 mb-4">
+        盤は外周を含む 4×4 のエリアと中央の 3×3 の内側エリアで構成され、連続した1つのフィールドとして連携します。
+        初期配置は外周（上の世界）にのみ行い、移動フェーズでは隣接する 4×4 ↔ 3×3 のマス間で駒を行き来させます。
+      </p>
       <div className="relative w-full max-w-3xl mx-auto aspect-square">
         <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 gap-3 z-10">
           {board.upper.cells.map((row, y) =>

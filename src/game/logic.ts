@@ -1,4 +1,13 @@
-import { BOARD_SIZES, cloneBoard, createBoard, getCell, hasEmptyCell, isUpperCentralCell, setCell } from './board'
+import {
+  BOARD_SIZES,
+  areSamePosition,
+  cloneBoard,
+  createBoard,
+  getAdjacentPositions,
+  getCell,
+  isUpperCentralCell,
+  setCell,
+} from './board'
 import type { GameMove, GameState, MoveResult, PlayerColor, Position, SandAssignment } from './types'
 
 export const MAX_PIECES_PER_PLAYER = 4
@@ -49,8 +58,6 @@ const hasThreeInline = (state: GameState, player: PlayerColor): boolean => {
   )
 }
 
-const isSamePosition = (a: Position, b: Position) => a.layer === b.layer && a.x === b.x && a.y === b.y
-
 const detectSandwichesFromPosition = (
   boardState: GameState['board'],
   origin: Position,
@@ -58,9 +65,9 @@ const detectSandwichesFromPosition = (
 ): Position[] => {
   const occupied = new Map<string, Position>()
   collectTriplets(origin.layer)
-    .filter((triplet) => triplet.some((pos) => isSamePosition(pos, origin)))
+    .filter((triplet) => triplet.some((pos) => areSamePosition(pos, origin)))
     .forEach((triplet) => {
-      const originIndex = triplet.findIndex((pos) => isSamePosition(pos, origin))
+      const originIndex = triplet.findIndex((pos) => areSamePosition(pos, origin))
       if (originIndex !== 0 && originIndex !== 2) {
         return
       }
@@ -126,12 +133,17 @@ const applySandAssignments = (board: GameState['board'], assignments: SandAssign
 }
 
 export const canPlayerMove = (state: GameState, player: PlayerColor): boolean => {
-  const upperHasPiece = state.board.upper.cells.some((row) => row.some((cell) => cell === player))
-  const lowerHasPiece = state.board.lower.cells.some((row) => row.some((cell) => cell === player))
-  const lowerHasSpace = hasEmptyCell(state.board, 'lower')
-  const upperHasSpace = hasEmptyCell(state.board, 'upper')
-
-  return (upperHasPiece && lowerHasSpace) || (lowerHasPiece && upperHasSpace)
+  return (['upper', 'lower'] as const).some((layer) =>
+    state.board[layer].cells.some((row, y) =>
+      row.some((cell, x) => {
+        if (cell !== player) {
+          return false
+        }
+        const origin: Position = { layer, x, y }
+        return getAdjacentPositions(origin).some((neighbor) => getCell(state.board, neighbor) === 'empty')
+      }),
+    ),
+  )
 }
 
 export const describePosition = (pos: Position) =>
@@ -167,6 +179,9 @@ export const applyMove = (state: GameState, move: GameMove): MoveResult => {
     if (state.phase !== 'placing') {
       return { success: false, error: 'illegal', message: '配置フェーズ以外で駒を置くことはできません' }
     }
+    if (move.to.layer !== 'upper') {
+      return { success: false, error: 'illegal', message: '手持ちの駒は外周4×4にのみ配置できます' }
+    }
     if (state.placementsRemaining[player] <= 0) {
       return { success: false, error: 'illegal', message: 'すべての駒を配置済みです' }
     }
@@ -201,6 +216,10 @@ export const applyMove = (state: GameState, move: GameMove): MoveResult => {
     }
     if (move.from.layer === move.to.layer) {
       return { success: false, error: 'illegal', message: '必ず上下どちらかへ移動してください' }
+    }
+    const reachable = getAdjacentPositions(move.from)
+    if (!reachable.some((target) => areSamePosition(target, move.to))) {
+      return { success: false, error: 'illegal', message: '隣接するマスにのみ移動できます' }
     }
     setCell(board, move.from, 'empty')
     setCell(board, move.to, player)
