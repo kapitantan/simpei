@@ -1,4 +1,4 @@
-import type { Board, Layer, Position } from '../game/types'
+import type { Board, Position } from '../game/types'
 
 const positionKey = (pos: Position) => `${pos.layer}-${pos.x}-${pos.y}`
 
@@ -9,6 +9,18 @@ interface CombinedBoardProps {
   selectedCell?: Position | null
   pendingSandTargets?: Position[]
   disabled?: boolean
+}
+
+const GRID_SIZE = 7
+
+const toPosition = (row: number, col: number): Position | null => {
+  if (row % 2 === 0 && col % 2 === 0) {
+    return { layer: 'upper', y: row / 2, x: col / 2 }
+  }
+  if (row % 2 === 1 && col % 2 === 1 && row < GRID_SIZE - 1 && col < GRID_SIZE - 1) {
+    return { layer: 'lower', y: (row - 1) / 2, x: (col - 1) / 2 }
+  }
+  return null
 }
 
 const CombinedBoard = ({
@@ -24,69 +36,59 @@ const CombinedBoard = ({
   const selectedKey = selectedCell ? positionKey(selectedCell) : null
   const interactionEnabled = !disabled && !!onCellClick
 
-  const renderCell = (layer: Layer, x: number, y: number, extraClassName: string) => {
-    const pos: Position = { layer, x, y }
-    const key = positionKey(pos)
-    const occupant = board[layer].cells[y][x]
-    const isHighlight = highlightSet.has(key)
-    const isSelected = key === selectedKey
-    const isPending = pendingSet.has(key)
-    const clickable = interactionEnabled && (isHighlight || isSelected || isPending)
-
-    return (
-      <button
-        key={key}
-        type="button"
-        onClick={() => onCellClick?.(pos)}
-        className={`relative flex items-center justify-center rounded-xl border transition-all duration-150 ${extraClassName}
-          ${occupant === 'empty' ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-700 border-slate-500'}
-          ${isHighlight ? 'ring-2 ring-yellow-400' : ''}
-          ${isSelected ? 'ring-2 ring-white border-white' : ''}
-          ${isPending ? 'animate-pulse ring-2 ring-fuchsia-400 border-fuchsia-400' : ''}
-          ${clickable ? 'cursor-pointer hover:border-white hover:bg-slate-600/80' : 'cursor-default opacity-90'}
-        `}
-        disabled={!clickable}
-      >
-        {occupant !== 'empty' && (
-          <span
-            className={`inline-flex w-9 h-9 md:w-11 md:h-11 rounded-full items-center justify-center text-base font-semibold shadow-inner
-              ${occupant === 'red' ? 'bg-piece-red text-slate-900' : 'bg-piece-blue text-slate-900'}`}
-          >
-            {occupant === 'red' ? 'R' : 'B'}
-          </span>
-        )}
-      </button>
-    )
-  }
-
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
       <p className="text-sm text-slate-300 mb-4">
-        盤は外周を含む 4×4 のエリアと中央の 3×3 の内側エリアで構成され、連続した1つのフィールドとして連携します。
-        初期配置は外周（上の世界）にのみ行い、移動フェーズでは隣接する 4×4 ↔ 3×3 のマス間で駒を行き来させます。
+        7×7 グリッド上で、白（4×4=上の世界）と黒（3×3=下の世界）のマスが交互に配置されています。
+        初期配置は白マスのみ、移動フェーズでは隣り合う白↔黒マス間で駒を移します。
       </p>
-      <div className="relative w-full max-w-3xl mx-auto aspect-square">
-        <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 gap-3 z-10">
-          {board.upper.cells.map((row, y) =>
-            row.map((_cell, x) => renderCell('upper', x, y, '')),
-          )}
-        </div>
-        <div
-          className="absolute z-20 grid grid-cols-3 grid-rows-3 gap-3 pointer-events-none"
-          style={{ inset: '12%' }}
-        >
-          {board.lower.cells.map((row, y) =>
-            row.map((_cell, x) => (
-              <div key={`wrapper-${x}-${y}`} className="pointer-events-auto">
-                {renderCell('lower', x, y, 'text-sm')}
-              </div>
-            )),
-          )}
-        </div>
+      <div className="grid grid-cols-7 gap-2 w-full max-w-3xl mx-auto">
+        {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, index) => {
+          const row = Math.floor(index / GRID_SIZE)
+          const col = index % GRID_SIZE
+          const pos = toPosition(row, col)
+          if (!pos) {
+            return <div key={`empty-${index}`} className="aspect-square rounded-xl bg-slate-800/30 border border-slate-800" />
+          }
+
+          const key = positionKey(pos)
+          const occupant = board[pos.layer].cells[pos.y][pos.x]
+          const isHighlight = highlightSet.has(key)
+          const isSelected = key === selectedKey
+          const isPending = pendingSet.has(key)
+          const clickable = interactionEnabled && (isHighlight || isSelected || isPending)
+
+          const isUpper = pos.layer === 'upper'
+
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onCellClick?.(pos)}
+              className={`aspect-square rounded-xl border flex items-center justify-center transition-colors duration-150
+                ${isUpper ? 'bg-slate-800 border-slate-600' : 'bg-slate-700 border-slate-500'}
+                ${clickable ? 'cursor-pointer hover:border-white hover:bg-slate-600' : 'cursor-default opacity-90'}
+                ${isHighlight ? 'ring-2 ring-yellow-400' : ''}
+                ${isSelected ? 'ring-2 ring-white border-white' : ''}
+                ${isPending ? 'animate-pulse ring-2 ring-fuchsia-400 border-fuchsia-400' : ''}
+              `}
+              disabled={!clickable}
+            >
+              {occupant !== 'empty' && (
+                <span
+                  className={`inline-flex w-9 h-9 md:w-11 md:h-11 rounded-full items-center justify-center text-base font-semibold shadow-inner
+                    ${occupant === 'red' ? 'bg-piece-red text-slate-900' : 'bg-piece-blue text-slate-900'}`}
+                >
+                  {occupant === 'red' ? 'R' : 'B'}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
       <div className="flex items-center justify-between text-xs text-slate-500 mt-4">
-        <span>外枠: 上の世界 (4×4)</span>
-        <span>内側: 下の世界 (3×3)</span>
+        <span>□: 上の世界 (4×4)</span>
+        <span>■: 下の世界 (3×3)</span>
       </div>
     </div>
   )
