@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import GameLayer from './components/GameLayer'
+import CombinedBoard from './components/CombinedBoard'
 import { getCell, listPositions } from './game/board'
 import { applyMove, canPlayerMove, createInitialState } from './game/logic'
 import type { GameMove, GameState, PlayerColor, Position, SandAssignment } from './game/types'
@@ -318,30 +318,16 @@ function App() {
           </div>
         </header>
 
-        <section className="grid md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <GameLayer
-                layer="upper"
-                label="上の世界 (4×4)"
-                board={gameState.board.upper}
-                highlightCells={highlightCells}
-                selectedCell={selectedFrom}
-                onCellClick={handleCellClick}
-                pendingSandTargets={pendingSandMove?.sandTargets ?? []}
-                disabled={!canInteract && !pendingSand}
-              />
-              <GameLayer
-                layer="lower"
-                label="下の世界 (3×3)"
-                board={gameState.board.lower}
-                highlightCells={highlightCells}
-                selectedCell={selectedFrom}
-                onCellClick={handleCellClick}
-                pendingSandTargets={pendingSandMove?.sandTargets ?? []}
-                disabled={!canInteract && !pendingSand}
-              />
-            </div>
+        <section className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6">
+          <div className="space-y-4">
+            <CombinedBoard
+              board={gameState.board}
+              highlightCells={highlightCells}
+              selectedCell={selectedFrom}
+              onCellClick={handleCellClick}
+              pendingSandTargets={pendingSandMove?.sandTargets ?? []}
+              disabled={!canInteract && !pendingSand}
+            />
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
               <p className="text-sm text-slate-400">ステータス: {displayedStatus}</p>
               {snapshot.error && <p className="text-sm text-rose-300">{snapshot.error}</p>}

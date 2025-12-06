@@ -49,17 +49,36 @@ const hasThreeInline = (state: GameState, player: PlayerColor): boolean => {
   )
 }
 
-const detectSandwiches = (boardState: GameState['board'], layer: 'upper' | 'lower', player: PlayerColor): Position[] => {
+const isSamePosition = (a: Position, b: Position) => a.layer === b.layer && a.x === b.x && a.y === b.y
+
+const detectSandwichesFromPosition = (
+  boardState: GameState['board'],
+  origin: Position,
+  player: PlayerColor,
+): Position[] => {
   const occupied = new Map<string, Position>()
-  collectTriplets(layer).forEach(([first, middle, last]) => {
-    const firstCell = getCell(boardState, first)
-    const middleCell = getCell(boardState, middle)
-    const lastCell = getCell(boardState, last)
-    if (firstCell === player && lastCell === player && middleCell !== 'empty' && middleCell !== player) {
+  collectTriplets(origin.layer)
+    .filter((triplet) => triplet.some((pos) => isSamePosition(pos, origin)))
+    .forEach((triplet) => {
+      const originIndex = triplet.findIndex((pos) => isSamePosition(pos, origin))
+      if (originIndex !== 0 && originIndex !== 2) {
+        return
+      }
+      const otherIndex = originIndex === 0 ? 2 : 0
+      const middleIndex = 1
+      const middle = triplet[middleIndex]
+      const other = triplet[otherIndex]
+      const middleCell = getCell(boardState, middle)
+      const otherCell = getCell(boardState, other)
+      if (middleCell === 'empty' || middleCell === player) {
+        return
+      }
+      if (otherCell !== player) {
+        return
+      }
       const key = `${middle.layer}-${middle.x}-${middle.y}`
       occupied.set(key, middle)
-    }
-  })
+    })
   return Array.from(occupied.values())
 }
 
@@ -189,18 +208,12 @@ export const applyMove = (state: GameState, move: GameMove): MoveResult => {
     nextState.consecutivePasses = 0
   }
 
-  let activeLayer: 'upper' | 'lower' | null = null
-  if (move.type === 'place') {
-    activeLayer = move.to.layer
-  } else if (move.type === 'move') {
-    activeLayer = move.to.layer
-  }
-
+  const targetPosition = move.type === 'place' || move.type === 'move' ? move.to : null
   const sandAssignments: SandAssignment[] | undefined =
     move.type === 'place' || move.type === 'move' ? move.sandAssignments : undefined
 
-  if (activeLayer) {
-    const sandwiches = detectSandwiches(board, activeLayer, player)
+  if (targetPosition) {
+    const sandwiches = detectSandwichesFromPosition(board, targetPosition, player)
     const validation = ensureSandAssignments(sandwiches, sandAssignments, board)
     if (!validation.ok) {
       return {
