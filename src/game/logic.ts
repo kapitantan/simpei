@@ -52,9 +52,15 @@ const collectTriplets = (layer: 'upper' | 'lower'): Position[][] => {
   return triplets
 }
 
-const hasThreeInline = (state: GameState, player: PlayerColor): boolean => {
-  return (['upper', 'lower'] as const).some((layer) =>
-    collectTriplets(layer).some((triplet) => triplet.every((pos) => getCell(state.board, pos) === player)),
+const hasThreeInline = (state: GameState, player: PlayerColor, origin?: Position | null): boolean => {
+  const layers = origin ? [origin.layer] : (['upper', 'lower'] as const)
+  return layers.some((layer) =>
+    collectTriplets(layer).some((triplet) => {
+      if (origin && !triplet.some((pos) => areSamePosition(pos, origin))) {
+        return false
+      }
+      return triplet.every((pos) => getCell(state.board, pos) === player)
+    }),
   )
 }
 
@@ -248,7 +254,7 @@ export const applyMove = (state: GameState, move: GameMove): MoveResult => {
     }
   }
 
-  if (!nextState.winner && move.type !== 'pass' && hasThreeInline(nextState, player)) {
+  if (!nextState.winner && targetPosition && hasThreeInline(nextState, player, targetPosition)) {
     nextState.winner = player
     nextState.lastAction = `${player === 'red' ? '赤' : '青'}が3連を達成`
   }
