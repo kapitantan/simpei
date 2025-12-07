@@ -59,27 +59,44 @@ const CombinedBoard = ({
           const clickable = interactionEnabled && (isHighlight || isSelected || isPending)
 
           const isUpper = pos.layer === 'upper'
+          const isLower = pos.layer === 'lower'
+          const tileBaseClass = isUpper
+            ? 'inset-1 bg-slate-100/80 border border-white/40 shadow-[inset_0_1px_3px_rgba(255,255,255,0.35)]'
+            : 'inset-2 bg-slate-900/80 border border-slate-800 shadow-[inset_0_2px_6px_rgba(0,0,0,0.85)]'
+          const pieceColorClass = occupant === 'red' ? 'bg-piece-red text-slate-900' : 'bg-piece-blue text-slate-900'
+          const pieceShapeClass = isUpper
+            ? 'w-9 h-9 md:w-11 md:h-11 rounded-full'
+            : 'w-8 h-8 md:w-10 md:h-10 rounded-[1.35rem] text-sm'
 
           return (
             <button
               key={key}
               type="button"
               onClick={() => onCellClick?.(pos)}
-              className={`aspect-square rounded-xl border flex items-center justify-center transition-colors duration-150
-                ${isUpper ? 'bg-slate-800 border-slate-600' : 'bg-slate-700 border-slate-500'}
-                ${clickable ? 'cursor-pointer hover:border-white hover:bg-slate-600' : 'cursor-default opacity-90'}
+              className={`relative aspect-square rounded-2xl border flex items-center justify-center transition-all duration-150 bg-transparent
+                ${clickable ? 'cursor-pointer border-slate-500/40 hover:border-white/80 hover:ring-1 hover:ring-white/40' : 'cursor-default border-slate-800/40 opacity-90'}
                 ${isHighlight ? 'ring-2 ring-yellow-400' : ''}
                 ${isSelected ? 'ring-2 ring-white border-white' : ''}
                 ${isPending ? 'animate-pulse ring-2 ring-fuchsia-400 border-fuchsia-400' : ''}
               `}
               disabled={!clickable}
             >
+              <span
+                aria-hidden
+                className={`pointer-events-none absolute rounded-xl transition-all duration-200 ${tileBaseClass}`}
+              />
               {occupant !== 'empty' && (
                 <span
-                  className={`inline-flex w-9 h-9 md:w-11 md:h-11 rounded-full items-center justify-center text-base font-semibold shadow-inner
-                    ${occupant === 'red' ? 'bg-piece-red text-slate-900' : 'bg-piece-blue text-slate-900'}`}
+                  className={`relative inline-flex items-center justify-center font-semibold shadow-inner ${pieceColorClass} ${pieceShapeClass}`}
                 >
                   {occupant === 'red' ? 'R' : 'B'}
+                  {isLower && (
+                    <span
+                      aria-hidden
+                      className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[12px]
+                        ${occupant === 'red' ? 'border-t-piece-red' : 'border-t-piece-blue'} border-l-transparent border-r-transparent drop-shadow`}
+                    />
+                  )}
                 </span>
               )}
             </button>
