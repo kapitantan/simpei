@@ -40,7 +40,7 @@ const CombinedBoard = ({
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
       <p className="text-sm text-slate-300 mb-4">
         7×7 グリッド上で、白（4×4=上の世界）と黒（3×3=下の世界）のマスが交互に配置されています。
-        初期配置は白マスのみ、移動フェーズでは隣り合う白↔黒マス間で駒を移します。
+        配置フェーズは初手のみ白マス中央4箇所、それ以降は白黒どちらにも配置可能で、移動フェーズでは隣り合う白↔黒マス間で駒を移します。
       </p>
       <div className="grid grid-cols-7 gap-2 w-full max-w-3xl mx-auto">
         {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, index) => {

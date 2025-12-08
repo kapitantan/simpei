@@ -185,9 +185,6 @@ export const applyMove = (state: GameState, move: GameMove): MoveResult => {
     if (state.phase !== 'placing') {
       return { success: false, error: 'illegal', message: '配置フェーズ以外で駒を置くことはできません' }
     }
-    if (move.to.layer !== 'upper') {
-      return { success: false, error: 'illegal', message: '手持ちの駒は外周4×4にのみ配置できます' }
-    }
     if (state.placementsRemaining[player] <= 0) {
       return { success: false, error: 'illegal', message: 'すべての駒を配置済みです' }
     }
