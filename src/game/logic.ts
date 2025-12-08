@@ -70,28 +70,46 @@ const detectSandwichesFromPosition = (
   player: PlayerColor,
 ): Position[] => {
   const occupied = new Map<string, Position>()
-  collectTriplets(origin.layer)
-    .filter((triplet) => triplet.some((pos) => areSamePosition(pos, origin)))
-    .forEach((triplet) => {
-      const originIndex = triplet.findIndex((pos) => areSamePosition(pos, origin))
-      if (originIndex !== 0 && originIndex !== 2) {
+  const { width, height } = BOARD_SIZES[origin.layer]
+  const directions = [
+    { dx: 1, dy: 0 },
+    { dx: -1, dy: 0 },
+    { dx: 0, dy: 1 },
+    { dx: 0, dy: -1 },
+    { dx: 1, dy: 1 },
+    { dx: 1, dy: -1 },
+    { dx: -1, dy: 1 },
+    { dx: -1, dy: -1 },
+  ]
+
+  const scanDirection = (dx: number, dy: number) => {
+    const captured: Position[] = []
+    let x = origin.x + dx
+    let y = origin.y + dy
+
+    while (x >= 0 && x < width && y >= 0 && y < height) {
+      const current: Position = { layer: origin.layer, x, y }
+      const cell = getCell(boardState, current)
+      if (cell === 'empty') {
         return
       }
-      const otherIndex = originIndex === 0 ? 2 : 0
-      const middleIndex = 1
-      const middle = triplet[middleIndex]
-      const other = triplet[otherIndex]
-      const middleCell = getCell(boardState, middle)
-      const otherCell = getCell(boardState, other)
-      if (middleCell === 'empty' || middleCell === player) {
+      if (cell === player) {
+        if (captured.length > 0) {
+          captured.forEach((pos) => {
+            const key = `${pos.layer}-${pos.x}-${pos.y}`
+            occupied.set(key, pos)
+          })
+        }
         return
       }
-      if (otherCell !== player) {
-        return
-      }
-      const key = `${middle.layer}-${middle.x}-${middle.y}`
-      occupied.set(key, middle)
-    })
+      captured.push({ ...current })
+      x += dx
+      y += dy
+    }
+  }
+
+  directions.forEach(({ dx, dy }) => scanDirection(dx, dy))
+
   return Array.from(occupied.values())
 }
 
