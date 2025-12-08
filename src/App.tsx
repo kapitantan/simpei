@@ -142,7 +142,8 @@ function App() {
       if (gameState.turnCount === 0) {
         return upperCells.filter((pos) => pos.x >= 1 && pos.x <= 2 && pos.y >= 1 && pos.y <= 2)
       }
-      return upperCells
+      const lowerCells = listPositions('lower').filter((pos) => getCell(gameState.board, pos) === 'empty')
+      return [...upperCells, ...lowerCells]
     }
 
     if (gameState.phase === 'moving') {
@@ -219,9 +220,6 @@ function App() {
       if (!canInteract) return
 
       if (gameState.phase === 'placing') {
-        if (position.layer !== 'upper') {
-          return
-        }
         tryMove({ type: 'place', to: position })
         return
       }
