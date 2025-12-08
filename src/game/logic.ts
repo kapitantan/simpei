@@ -24,9 +24,7 @@ export const createInitialState = (startingPlayer: PlayerColor = 'red'): GameSta
   consecutivePasses: 0,
 })
 
-const collectTriplets = (layer: 'upper' | 'lower'): Position[][] => {
-  const { width, height } = BOARD_SIZES[layer]
-  const triplets: Position[][] = []
+const hasThreeInline = (state: GameState, player: PlayerColor, origin?: Position | null): boolean => {
   const directions = [
     { dx: 1, dy: 0 },
     { dx: 0, dy: 1 },
@@ -34,34 +32,59 @@ const collectTriplets = (layer: 'upper' | 'lower'): Position[][] => {
     { dx: 1, dy: -1 },
   ]
 
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      directions.forEach(({ dx, dy }) => {
-        const endX = x + dx * 2
-        const endY = y + dy * 2
-        if (endX >= 0 && endX < width && endY >= 0 && endY < height) {
-          triplets.push([
-            { layer, x, y },
-            { layer, x: x + dx, y: y + dy },
-            { layer, x: endX, y: endY },
-          ])
-        }
-      })
-    }
+  const isInside = (layer: 'upper' | 'lower', x: number, y: number) => {
+    const { width, height } = BOARD_SIZES[layer]
+    return x >= 0 && x < width && y >= 0 && y < height
   }
-  return triplets
-}
 
-const hasThreeInline = (state: GameState, player: PlayerColor, origin?: Position | null): boolean => {
-  const layers = origin ? [origin.layer] : (['upper', 'lower'] as const)
-  return layers.some((layer) =>
-    collectTriplets(layer).some((triplet) => {
-      if (origin && !triplet.some((pos) => areSamePosition(pos, origin))) {
-        return false
+  const targetLayers = origin ? [origin.layer] : (['upper', 'lower'] as const)
+
+  return targetLayers.some((layer) => {
+    const { width, height } = BOARD_SIZES[layer]
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        for (const { dx, dy } of directions) {
+          const triplet: Position[] = []
+          let valid = true
+          for (let step = 0; step < 3; step += 1) {
+            const targetX = x + dx * step
+            const targetY = y + dy * step
+            if (!isInside(layer, targetX, targetY)) {
+              valid = false
+              break
+            }
+            const current: Position = { layer, x: targetX, y: targetY }
+            if (getCell(state.board, current) !== player) {
+              valid = false
+              break
+            }
+            triplet.push(current)
+          }
+          if (!valid) {
+            continue
+          }
+          if (origin && !triplet.some((pos) => areSamePosition(pos, origin))) {
+            continue
+          }
+
+          const prevX = x - dx
+          const prevY = y - dy
+          if (isInside(layer, prevX, prevY) && getCell(state.board, { layer, x: prevX, y: prevY }) === player) {
+            continue
+          }
+
+          const nextX = x + dx * 3
+          const nextY = y + dy * 3
+          if (isInside(layer, nextX, nextY) && getCell(state.board, { layer, x: nextX, y: nextY }) === player) {
+            continue
+          }
+
+          return true
+        }
       }
-      return triplet.every((pos) => getCell(state.board, pos) === player)
-    }),
-  )
+    }
+    return false
+  })
 }
 
 const detectSandwichesFromPosition = (
