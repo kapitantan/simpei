@@ -14,6 +14,7 @@ type SandPendingMove = {
   baseMove: Extract<GameMove, { type: 'place' | 'move' }>
   sandTargets: Position[]
   assignments: SandAssignment[]
+  previewState: GameState
 }
 
 const getConnectToParam = () => {
@@ -125,12 +126,13 @@ function App() {
   const passEnabled = gameState.phase === 'moving' && canInteract && !pendingSand
   const inviteUrl = snapshot.peerId ? getInviteUrl(snapshot.peerId) : ''
   const hasRemoteInput = manualRemoteId.trim().length > 0
+  const boardForRender = pendingSandMove?.previewState.board ?? gameState.board
 
   const highlightCells = useMemo(() => {
     if (pendingSandMove) {
       return (['upper', 'lower'] as const)
         .flatMap((layer) => listPositions(layer))
-        .filter((pos) => getCell(gameState.board, pos) === 'empty')
+        .filter((pos) => getCell(boardForRender, pos) === 'empty')
     }
 
     if (!canInteract) {
@@ -156,7 +158,7 @@ function App() {
     }
 
     return []
-  }, [canInteract, controllingColor, gameState, pendingSandMove, selectedFrom])
+  }, [boardForRender, canInteract, controllingColor, gameState, pendingSandMove, selectedFrom])
 
   const tryMove = useCallback(
     (move: GameMove) => {
@@ -166,7 +168,16 @@ function App() {
         if (result.error === 'sand-required' && result.requiredSand) {
           const baseMove = move.type === 'pass' ? null : ({ ...move } as Extract<GameMove, { type: 'place' | 'move' }>)
           if (baseMove) {
-            setPendingSandMove({ baseMove, sandTargets: result.requiredSand, assignments: [] })
+            if (!result.state) {
+              setStatusMessage('挟み処理の準備に失敗しました')
+              return
+            }
+            setPendingSandMove({
+              baseMove,
+              sandTargets: result.requiredSand,
+              assignments: [],
+              previewState: result.state,
+            })
             setStatusMessage('挟みが発生しました。飛ばす先を選んでください。')
           }
           return
@@ -197,7 +208,8 @@ function App() {
   const handleCellClick = useCallback(
     (position: Position) => {
       if (pendingSandMove) {
-        if (getCell(gameState.board, position) !== 'empty') {
+        const previewBoard = pendingSandMove.previewState.board
+        if (getCell(previewBoard, position) !== 'empty') {
           return
         }
         const updatedAssignments: SandAssignment[] = [
@@ -320,7 +332,7 @@ function App() {
         <section className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6">
           <div className="space-y-4">
             <CombinedBoard
-              board={gameState.board}
+              board={boardForRender}
               highlightCells={highlightCells}
               selectedCell={selectedFrom}
               onCellClick={handleCellClick}
