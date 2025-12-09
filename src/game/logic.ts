@@ -279,12 +279,16 @@ export const applyMove = (state: GameState, move: GameMove): MoveResult => {
     const sandwiches = detectSandwichesFromPosition(board, targetPosition, player)
     const validation = ensureSandAssignments(sandwiches, sandAssignments, board)
     if (!validation.ok) {
-      return {
+      const response: MoveResult = {
         success: false,
         error: validation.message === 'sand-required' ? 'sand-required' : 'illegal',
         message: validation.message,
         requiredSand: sandwiches,
       }
+      if (validation.message === 'sand-required') {
+        response.state = nextState
+      }
+      return response
     }
     if (sandwiches.length > 0 && sandAssignments) {
       applySandAssignments(board, sandAssignments)
