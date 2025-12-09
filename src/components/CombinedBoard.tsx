@@ -184,16 +184,17 @@ const CombinedBoard = ({
         {flyingPieces.map((piece) => (
           <span
             key={piece.id}
-            className={`absolute rounded-full flex items-center justify-center text-xs font-semibold text-slate-900 shadow-lg pointer-events-none transition-transform duration-500 ease-out ${
+            className={`absolute rounded-full flex items-center justify-center text-xs font-semibold text-slate-900 shadow-lg pointer-events-none ${
               piece.color === 'red' ? 'bg-piece-red' : 'bg-piece-blue'
             }`}
             style={{
               width: `${piece.size}px`,
               height: `${piece.size}px`,
-              transform: `translate(${(piece.active ? piece.end.x : piece.start.x) - piece.size / 2}px, ${
-                (piece.active ? piece.end.y : piece.start.y) - piece.size / 2
-              }px)`,
-              opacity: piece.active ? 0.9 : 0.6,
+              left: `${piece.active ? piece.end.x : piece.start.x}px`,
+              top: `${piece.active ? piece.end.y : piece.start.y}px`,
+              transform: 'translate(-50%, -50%)',
+              opacity: piece.active ? 0.95 : 0.7,
+              transition: 'left 500ms ease-out, top 500ms ease-out, opacity 300ms ease-out',
             }}
           >
             {piece.color === 'red' ? 'R' : 'B'}
