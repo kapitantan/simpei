@@ -8,7 +8,7 @@ import {
   isUpperCentralCell,
   setCell,
 } from './board'
-import type { GameMove, GameState, MoveResult, PlayerColor, Position, SandAssignment } from './types'
+import type { GameMove, GameState, MoveResult, PlayerColor, Position, SandAssignment, SandMove } from './types'
 
 export const MAX_PIECES_PER_PLAYER = 4
 
@@ -22,6 +22,7 @@ export const createInitialState = (startingPlayer: PlayerColor = 'red'): GameSta
   placementsRemaining: createPlacements(),
   turnCount: 0,
   consecutivePasses: 0,
+  lastSandMoves: null,
 })
 
 const hasThreeInline = (state: GameState, player: PlayerColor, origin?: Position | null): boolean => {
@@ -168,7 +169,8 @@ const ensureSandAssignments = (
   return { ok: true }
 }
 
-const applySandAssignments = (board: GameState['board'], assignments: SandAssignment[]) => {
+const applySandAssignments = (board: GameState['board'], assignments: SandAssignment[]): SandMove[] => {
+  const moved: SandMove[] = []
   assignments.forEach(({ from, to }) => {
     const piece = getCell(board, from)
     if (piece === 'empty') {
@@ -176,7 +178,9 @@ const applySandAssignments = (board: GameState['board'], assignments: SandAssign
     }
     setCell(board, from, 'empty')
     setCell(board, to, piece)
+    moved.push({ from, to, piece })
   })
+  return moved
 }
 
 export const canPlayerMove = (state: GameState, player: PlayerColor): boolean => {
@@ -206,6 +210,7 @@ export const applyMove = (state: GameState, move: GameMove): MoveResult => {
   const nextState: GameState = {
     ...state,
     board,
+    lastSandMoves: null,
   }
 
   if (move.type === 'pass') {
@@ -291,7 +296,8 @@ export const applyMove = (state: GameState, move: GameMove): MoveResult => {
       return response
     }
     if (sandwiches.length > 0 && sandAssignments) {
-      applySandAssignments(board, sandAssignments)
+      const appliedMoves = applySandAssignments(board, sandAssignments)
+      nextState.lastSandMoves = appliedMoves.length > 0 ? appliedMoves : null
       nextState.lastAction = `${nextState.lastAction ?? ''} / 挟み処理 ${sandwiches.length}件`
     }
   }

@@ -337,6 +337,7 @@ function App() {
               selectedCell={selectedFrom}
               onCellClick={handleCellClick}
               pendingSandTargets={pendingSandMove?.sandTargets ?? []}
+              sandAnimations={gameState.lastSandMoves ?? []}
               disabled={!canInteract && !pendingSand}
             />
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">

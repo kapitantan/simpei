@@ -27,6 +27,10 @@ export type SandAssignment = {
   to: Position
 }
 
+export interface SandMove extends SandAssignment {
+  piece: PlayerColor
+}
+
 export type GameMove =
   | { type: 'place'; to: Position; sandAssignments?: SandAssignment[] }
   | { type: 'move'; from: Position; to: Position; sandAssignments?: SandAssignment[] }
@@ -41,6 +45,7 @@ export interface GameState {
   turnCount: number
   consecutivePasses: number
   lastAction?: string
+  lastSandMoves?: SandMove[] | null
 }
 
 export interface MoveResult {
