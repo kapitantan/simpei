@@ -194,7 +194,7 @@ const CombinedBoard = ({
               top: `${piece.active ? piece.end.y : piece.start.y}px`,
               transform: 'translate(-50%, -50%)',
               opacity: piece.active ? 0.95 : 0.7,
-              transition: 'left 500ms ease-out, top 500ms ease-out, opacity 300ms ease-out',
+              transition: 'left 900ms cubic-bezier(0.22, 1, 0.36, 1), top 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 450ms ease-out',
             }}
           >
             {piece.color === 'red' ? 'R' : 'B'}
