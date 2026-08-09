@@ -33,3 +33,6 @@ amplifyconfiguration*
 __pycache__
 *.py[cod]
 server/data/
+
+# Playwright test artifacts
+test-results/
