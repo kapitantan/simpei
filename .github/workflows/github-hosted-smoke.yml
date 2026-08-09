@@ -1,4 +1,4 @@
-name: GitHub-hosted runner smoke test 
+name: GitHub-hosted runner CI and build
 
 on:
   push:
@@ -6,19 +6,51 @@ on:
       - main
       - feature/online_multiplayer
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
-  smoke-test:
+  ci-and-build:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
-      - name: Confirm runner
-        run: echo "GitHub Actions hosted runner is working."
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            aws-app/web/package-lock.json
+            aws-app/infra/package-lock.json
+
+      - name: Install web dependencies
+        working-directory: aws-app/web
+        run: npm ci
+
+      - name: Lint web
+        working-directory: aws-app/web
+        run: npm run lint
+
+      - name: Build web
+        working-directory: aws-app/web
+        run: npm run build
+
+      - name: Install infrastructure dependencies
+        working-directory: aws-app/infra
+        run: npm ci
+
+      - name: Lint infrastructure
+        working-directory: aws-app/infra
+        run: npm run lint
+
+      - name: Synthesize CloudFormation template
+        working-directory: aws-app/infra
+        run: npm run synth
 
       - name: finished
         run: |
           echo "Smoke test completed successfully."
-          ls -la
-
