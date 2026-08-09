@@ -1,0 +1,22 @@
+{
+  "name": "simpei-aws-infra",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.260.0",
+    "constructs": "^10.6.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "aws-cdk": "^2.1029.2",
+    "eslint": "^10.3.0",
+    "globals": "^17.6.0"
+  }
+}
