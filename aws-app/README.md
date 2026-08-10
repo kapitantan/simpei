@@ -90,3 +90,22 @@ npm run diff -- --profile dev_kida
 ```bash
 npm run deploy -- --profile dev_kida
 ```
+
+## deploy処理の流れ
+```txt
+npm run deploy
+  ↓
+cdk deploy
+  ↓
+cdk.jsonのappを確認
+(CDK CLIが現在のディレクトリからcdk.jsonを探す)
+  ↓
+node bin/aws-app.js
+  ↓
+lib/~~stack.js
+(StaticSiteStackを生成)
+  ↓
+CloudFormationテンプレートへ変換
+  ↓
+CloudFormationがAWSリソースを作成・更新
+```
