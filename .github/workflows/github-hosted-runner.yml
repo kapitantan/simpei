@@ -2,13 +2,9 @@ name: GitHub-hosted runner CI and build
 
 on:
   push:
-    branches:
-      - main
-      # - feature/online_multiplayer
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   ci-and-build:
@@ -48,6 +44,45 @@ jobs:
         working-directory: aws-app/infra
         run: npm run lint
 
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: aws-app/web/dist          # artifact領域に保存してjob間で成果物を渡す
+          if-no-files-found: error        # distがないと失敗
+          retention-days: 1               # 1日後に削除
+
+  aws-deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: ci-and-build                  # ci-and-buildに依存
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: aws-app/infra/package-lock.json
+
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: aws-app/web/dist
+
+      - name: Install infrastructure dependencies
+        working-directory: aws-app/infra
+        run: npm ci
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -56,13 +91,12 @@ jobs:
           allowed-account-ids: "886121092053"
 
       - name: Verify AWS identity
-        if: github.ref == 'refs/heads/main'
         run: aws sts get-caller-identity
-      
+
       - name: Synthesize CloudFormation template
         working-directory: aws-app/infra
         run: npm run synth
 
-      - name: finished
-        run: |
-          echo "Smoke test completed successfully."
+      - name: Deploy static site
+        working-directory: aws-app/infra
+        run: npm run deploy -- --require-approval never
