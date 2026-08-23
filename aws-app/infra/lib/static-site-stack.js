@@ -12,7 +12,10 @@ const webDistPath = path.resolve(currentDirectory, "../../web/dist");
 export class StaticSiteStack extends cdk.Stack {
   // scope: このスタックの親、id: スタックID、props: スタックの設定
   constructor(scope, id, props = {}) {
-    super(scope, id, props);
+    const { apiDomainName, ...stackProps } = props;
+    super(scope, id, stackProps);
+
+    const apiOrigin = new origins.HttpOrigin(apiDomainName);
 
     const siteBucket = new s3.Bucket(this, "SiteBucket", {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -36,6 +39,16 @@ export class StaticSiteStack extends cdk.Stack {
         responseHeadersPolicy: cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
+      // API Gatewayのエンドポイントをオリジンとして追加
+      additionalBehaviors: {
+        "/api/*": {
+          origin: apiOrigin,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        }
+      }
     });
 
     new s3deploy.BucketDeployment(this, "DeployWebsite", {
