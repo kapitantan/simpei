@@ -19,7 +19,7 @@ export class ApiStack extends Stack {
         runtime: lambda.Runtime.NODEJS_22_X,
         code: lambda.Code.fromAsset(
           apiDirectory,
-          { exclude: ["node_modules", "src/**/*.test.js"] },
+          { exclude: ["node_modules", "**/*.test.js"] },
         ),
         handler: "src/rooms/create-room.handler",
       },
