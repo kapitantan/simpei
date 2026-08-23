@@ -31,6 +31,7 @@ test("routes static files to S3 and /api/* to API Gateway", () => {
   assert.ok(apiBehavior, "/api/* behavior should exist");
   assert.equal(config.DefaultCacheBehavior.TargetOriginId, s3Origin.Id);
   assert.equal(config.WebACLId, webAclId);
+  assert.equal(config.PriceClass, undefined);
   assert.equal(apiBehavior.TargetOriginId, apiOrigin.Id);
   assert.deepEqual(apiBehavior.AllowedMethods, [
     "GET", "HEAD", "OPTIONS", "PUT", "PATCH", "POST", "DELETE",
