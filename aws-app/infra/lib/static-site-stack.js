@@ -33,7 +33,6 @@ export class StaticSiteStack extends cdk.Stack {
 
     const distribution = new cloudfront.Distribution(this, "SiteDistribution", {
       defaultRootObject: "index.html",
-      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
       webAclId,
       defaultBehavior: {
