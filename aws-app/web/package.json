@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint src vite.config.js",
-    "test": "node --test src/game/*.test.js",
+    "test": "npm run test:game && npm run test:routing",
+    "test:game": "node --test src/game/*.test.js",
+    "test:routing": "vitest run src/App.test.tsx",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -19,12 +22,15 @@
     "@eslint/js": "^10.0.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@testing-library/react": "^16.3.0",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^17.6.0",
     "typescript": "^7.0.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "vitest": "^4.0.18",
+    "jsdom": "^28.1.0"
   }
 }

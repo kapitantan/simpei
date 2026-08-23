@@ -14,16 +14,22 @@ import {
   isLegalAction,
   markDraw,
 } from "../game/simpei.js";
+import type {
+  GameAction,
+  GameState,
+  PositionId,
+  World,
+} from "../game/simpei.js";
 
 const REPETITION_DRAW_COUNT = 3;
 const MAX_MATCH_HISTORY_LENGTH = 180;
 
 export default function GamePage() {
   const [game, setGame] = useState(createInitialGame);
-  const [selectedPiece, setSelectedPiece] = useState(null);
-  const [invalidTarget, setInvalidTarget] = useState(null);
+  const [selectedPiece, setSelectedPiece] = useState<PositionId | null>(null);
+  const [invalidTarget, setInvalidTarget] = useState<PositionId | null>(null);
   const historyLengthRef = useRef(0);
-  const stateVisitCountsRef = useRef(new Map([[getStateKey(game), 1]]));
+  const stateVisitCountsRef = useRef<Map<string, number>>(new Map([[getStateKey(game), 1]]));
 
   const legalPlacementTargets = useMemo(
     () => new Set(getLegalPlacementTargets(game)),
@@ -35,12 +41,16 @@ export default function GamePage() {
   );
   const movablePieces = useMemo(() => new Set(getMovablePieces(game)), [game]);
   const legalMoveTargets = useMemo(
-    () => (selectedPiece ? new Set(getLegalMoveTargets(game, selectedPiece)) : new Set()),
+    () => (
+      selectedPiece
+        ? new Set(getLegalMoveTargets(game, selectedPiece))
+        : new Set<PositionId>()
+    ),
     [game, selectedPiece],
   );
   const forcedPiece = game.pendingForcedMove?.pieces[0] ?? null;
 
-  function commitAction(action) {
+  function commitAction(action: GameAction) {
     if (!isLegalAction(game, action)) {
       showInvalidTarget(action?.to ?? action?.from ?? null);
       return;
@@ -56,7 +66,7 @@ export default function GamePage() {
     }
   }
 
-  function handlePointClick(positionId) {
+  function handlePointClick(positionId: PositionId) {
     if (isTerminal(game)) {
       return;
     }
@@ -64,7 +74,7 @@ export default function GamePage() {
     if (game.pendingForcedMove) {
       commitAction({
         type: ACTION_TYPES.FORCE_MOVE,
-        from: forcedPiece.from,
+        from: game.pendingForcedMove.pieces[0].from,
         to: positionId,
       });
       return;
@@ -95,7 +105,7 @@ export default function GamePage() {
     showInvalidTarget(positionId);
   }
 
-  function showInvalidTarget(positionId) {
+  function showInvalidTarget(positionId: PositionId | null) {
     setInvalidTarget(positionId);
     window.setTimeout(() => {
       setInvalidTarget((current) => (current === positionId ? null : current));
@@ -111,7 +121,7 @@ export default function GamePage() {
     setInvalidTarget(null);
   }
 
-  function applyDrawRules(nextGame) {
+  function applyDrawRules(nextGame: GameState) {
     if (isTerminal(nextGame)) {
       return nextGame;
     }
@@ -153,7 +163,7 @@ export default function GamePage() {
         {game.pendingForcedMove && (
           <p className="forced-message">
             {getPlayerLabel(game.pendingForcedMove.player)}が挟んだ
-            {getPlayerLabel(forcedPiece.player)}の駒を、空いている場所へ移してください。
+            {getPlayerLabel(game.pendingForcedMove.pieces[0].player)}の駒を、空いている場所へ移してください。
           </p>
         )}
       </section>
@@ -197,6 +207,18 @@ export default function GamePage() {
   );
 }
 
+interface BoardProps {
+  game: GameState;
+  selectedPiece: PositionId | null;
+  invalidTarget: PositionId | null;
+  legalPlacementTargets: Set<PositionId>;
+  legalMoveTargets: Set<PositionId>;
+  forcedMoveTargets: Set<PositionId>;
+  forcedPieceId?: PositionId;
+  movablePieces: Set<PositionId>;
+  onPointClick: (positionId: PositionId) => void;
+}
+
 function Board({
   game,
   selectedPiece,
@@ -207,7 +229,7 @@ function Board({
   forcedPieceId,
   movablePieces,
   onPointClick,
-}) {
+}: BoardProps) {
   return (
     <section className="board-panel">
       <h2>ボード</h2>
@@ -298,21 +320,21 @@ function BoardLegend() {
   );
 }
 
-function getBoardGridPosition(world, row, col) {
+function getBoardGridPosition(world: World, row: number, col: number) {
   return world === WORLDS.UPPER
     ? { row: row * 2 + 1, col: col * 2 + 1 }
     : { row: row * 2 + 2, col: col * 2 + 2 };
 }
 
-function getPointLabel(world, row, col) {
+function getPointLabel(world: World, row: number, col: number) {
   return `${world === WORLDS.UPPER ? "U" : "L"}${row + 1}${col + 1}`;
 }
 
-function getWorldLabel(world) {
+function getWorldLabel(world: World) {
   return world === WORLDS.UPPER ? "上の世界" : "下の世界";
 }
 
-function getGameStatusLabel(game) {
+function getGameStatusLabel(game: GameState) {
   if (game.winner) {
     return `${getPlayerLabel(game.winner)}の勝ち`;
   }
@@ -322,11 +344,11 @@ function getGameStatusLabel(game) {
   return `${getPlayerLabel(game.currentPlayer)}の手番`;
 }
 
-function isTerminal(game) {
+function isTerminal(game: GameState) {
   return Boolean(game.winner || game.drawReason);
 }
 
-function getStateKey(game) {
+function getStateKey(game: GameState) {
   return JSON.stringify({
     board: game.board,
     currentPlayer: game.currentPlayer,
