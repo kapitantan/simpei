@@ -9,6 +9,7 @@ const env = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEFAULT_REGION ?? "ap-northeast-1",
 };
+const webAclId = "arn:aws:wafv2:us-east-1:886121092053:global/webacl/CreatedByCloudFront-f8b06248/e47d28fd-faac-484a-8e82-dca6b6af2d40";
 
 const apiStack = new ApiStack(app, "SimpeiApiStack", {
   env,
@@ -21,6 +22,7 @@ new StaticSiteStack(
   {                         // props
     env,
     apiDomainName: apiStack.apiDomainName,
+    webAclId,
     description: "Private S3 and CloudFront hosting for the Simpei static web app",
   }
 );
