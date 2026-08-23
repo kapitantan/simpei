@@ -118,6 +118,6 @@ jobs:
         working-directory: aws-app/infra
         run: npm run synth
 
-      - name: Deploy static site
+      - name: Deploy application stacks
         working-directory: aws-app/infra
-        run: npm run deploy -- --require-approval never
+        run: npm run deploy -- SimpeiApiStack SimpeiStaticSiteStack --require-approval never
