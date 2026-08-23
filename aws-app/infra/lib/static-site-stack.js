@@ -7,12 +7,15 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
-const webDistPath = path.resolve(currentDirectory, "../../web/dist");
+const defaultWebDistPath = path.resolve(currentDirectory, "../../web/dist");
 
 export class StaticSiteStack extends cdk.Stack {
   // scope: このスタックの親、id: スタックID、props: スタックの設定
   constructor(scope, id, props = {}) {
-    super(scope, id, props);
+    const { apiDomainName, webDistPath = defaultWebDistPath, ...stackProps } = props;
+    super(scope, id, stackProps);
+
+    const apiOrigin = new origins.HttpOrigin(apiDomainName);
 
     const siteBucket = new s3.Bucket(this, "SiteBucket", {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -35,6 +38,16 @@ export class StaticSiteStack extends cdk.Stack {
         compress: true,
         responseHeadersPolicy: cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+      // API Gatewayのエンドポイントをオリジンとして追加
+      additionalBehaviors: {
+        "/api/*": {
+          origin: apiOrigin,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
       },
     });
 

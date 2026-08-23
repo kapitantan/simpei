@@ -22,6 +22,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             aws-app/web/package-lock.json
+            aws-app/api/package-lock.json
             aws-app/infra/package-lock.json
 
       - name: Install web dependencies
@@ -32,9 +33,25 @@ jobs:
         working-directory: aws-app/web
         run: npm run lint
 
+      - name: Type-check web
+        working-directory: aws-app/web
+        run: npm run typecheck
+
+      - name: Test web
+        working-directory: aws-app/web
+        run: npm test
+
       - name: Build web
         working-directory: aws-app/web
         run: npm run build
+
+      - name: Install API dependencies
+        working-directory: aws-app/api
+        run: npm ci
+
+      - name: Test API
+        working-directory: aws-app/api
+        run: npm test
 
       - name: Install infrastructure dependencies
         working-directory: aws-app/infra
@@ -43,6 +60,10 @@ jobs:
       - name: Lint infrastructure
         working-directory: aws-app/infra
         run: npm run lint
+
+      - name: Test infrastructure
+        working-directory: aws-app/infra
+        run: npm test
 
       - name: Upload web build
         uses: actions/upload-artifact@v7
@@ -97,6 +118,6 @@ jobs:
         working-directory: aws-app/infra
         run: npm run synth
 
-      - name: Deploy static site
+      - name: Deploy application stacks
         working-directory: aws-app/infra
-        run: npm run deploy -- --require-approval never
+        run: npm run deploy -- SimpeiApiStack SimpeiStaticSiteStack --require-approval never
