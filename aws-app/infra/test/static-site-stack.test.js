@@ -8,10 +8,12 @@ import { StaticSiteStack } from "../lib/static-site-stack.js";
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const fixturePath = path.join(currentDirectory, "fixtures/web-dist");
+const webAclId = "arn:aws:wafv2:us-east-1:123456789012:global/webacl/TestWebACL/00000000-0000-0000-0000-000000000000";
 
 test("routes static files to S3 and /api/* to API Gateway", () => {
   const stack = new StaticSiteStack(new cdk.App(), "TestStaticSiteStack", {
     apiDomainName: "api.example.com",
+    webAclId,
     webDistPath: fixturePath,
   });
   const template = Template.fromStack(stack);
@@ -28,6 +30,7 @@ test("routes static files to S3 and /api/* to API Gateway", () => {
   assert.ok(apiOrigin, "API origin should exist");
   assert.ok(apiBehavior, "/api/* behavior should exist");
   assert.equal(config.DefaultCacheBehavior.TargetOriginId, s3Origin.Id);
+  assert.equal(config.WebACLId, webAclId);
   assert.equal(apiBehavior.TargetOriginId, apiOrigin.Id);
   assert.deepEqual(apiBehavior.AllowedMethods, [
     "GET", "HEAD", "OPTIONS", "PUT", "PATCH", "POST", "DELETE",

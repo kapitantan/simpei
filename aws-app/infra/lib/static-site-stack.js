@@ -12,7 +12,12 @@ const defaultWebDistPath = path.resolve(currentDirectory, "../../web/dist");
 export class StaticSiteStack extends cdk.Stack {
   // scope: このスタックの親、id: スタックID、props: スタックの設定
   constructor(scope, id, props = {}) {
-    const { apiDomainName, webDistPath = defaultWebDistPath, ...stackProps } = props;
+    const {
+      apiDomainName,
+      webAclId,
+      webDistPath = defaultWebDistPath,
+      ...stackProps
+    } = props;
     super(scope, id, stackProps);
 
     const apiOrigin = new origins.HttpOrigin(apiDomainName);
@@ -30,6 +35,7 @@ export class StaticSiteStack extends cdk.Stack {
       defaultRootObject: "index.html",
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+      webAclId,
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(siteBucket),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
