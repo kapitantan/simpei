@@ -120,4 +120,4 @@ jobs:
 
       - name: Deploy application stacks
         working-directory: aws-app/infra
-        run: npm run deploy -- SimpeiApiStack SimpeiStaticSiteStack --require-approval never
+        run: npm run deploy -- SimpeiDynamoStack SimpeiApiStack SimpeiStaticSiteStack --require-approval never

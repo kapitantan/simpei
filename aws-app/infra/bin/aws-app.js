@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
+import { DynamoStack } from "../lib/dynamo-stack.js";
 import { ApiStack } from "../lib/api-stack.js";
 import { StaticSiteStack } from "../lib/static-site-stack.js";
 
@@ -14,6 +15,11 @@ const webAclId = "arn:aws:wafv2:us-east-1:886121092053:global/webacl/CreatedByCl
 const apiStack = new ApiStack(app, "SimpeiApiStack", {
   env,
   description: "API Gateway and Lambda for the Simpei web app",
+});
+
+new DynamoStack(app, "SimpeiDynamoStack", {
+  env,
+  description: "DynamoDB table for the Simpei web app",
 });
 
 new StaticSiteStack(
