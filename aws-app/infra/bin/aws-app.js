@@ -8,19 +8,23 @@ import { StaticSiteStack } from "../lib/static-site-stack.js";
 const app = new cdk.App();
 const env = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
-  region: process.env.CDK_DEFAULT_REGION ?? "ap-northeast-1",
+  region: process.env.CDK_DEFAULT_REGION ?? "ap-northeast-1",  
 };
+
 const webAclId = "arn:aws:wafv2:us-east-1:886121092053:global/webacl/CreatedByCloudFront-f8b06248/e47d28fd-faac-484a-8e82-dca6b6af2d40";
+
+const dynamoStack = new DynamoStack(app, "SimpeiDynamoStack", {
+  env,
+  description: "DynamoDB table for the Simpei web app",
+});
 
 const apiStack = new ApiStack(app, "SimpeiApiStack", {
   env,
   description: "API Gateway and Lambda for the Simpei web app",
+  labSessionTable: dynamoStack.labSessionTable,
+  gameRoomTable: dynamoStack.gameRoomTable
 });
 
-new DynamoStack(app, "SimpeiDynamoStack", {
-  env,
-  description: "DynamoDB table for the Simpei web app",
-});
 
 new StaticSiteStack(
   app,                      // scope: このスタックを所属させるCDK app
