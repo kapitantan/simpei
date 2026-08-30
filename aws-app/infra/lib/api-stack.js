@@ -9,8 +9,8 @@ const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const apiDirectory = path.resolve(currentDirectory, "../../api");
 
 export class ApiStack extends Stack {
-  constructor(scope, id, props = {}) {
-    super(scope, id, props);
+  constructor(scope, id, {labSessionTable, gameRoomTable, ...stackProps} = {}) {
+    super(scope, id, stackProps);
 
     const createRoomFunction = new lambda.Function(
       this,
@@ -22,8 +22,15 @@ export class ApiStack extends Stack {
           { exclude: ["node_modules", "**/*.test.js"] },
         ),
         handler: "src/rooms/create-room.handler",
+        environment: {
+          LabSessionTableName: labSessionTable.tableName,
+          GameRoomTableName: gameRoomTable.tableName,
+        }
       },
     );
+
+    labSessionTable.grantWriteData(createRoomFunction);
+    gameRoomTable.grantWriteData(createRoomFunction);
 
     this.httpApi = new apigatewayv2.HttpApi(this, "Api", {
       apiName: "simpei-api",

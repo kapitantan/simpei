@@ -8,7 +8,8 @@
     "test": "node --test test/*.test.js",
     "synth": "cdk synth",
     "diff": "cdk diff",
-    "deploy": "cdk deploy"
+    "deploy": "cdk deploy",
+    "deploy:api": "cdk deploy SimpeiApiStack --hotswap --profile dev_kida"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.266.0",

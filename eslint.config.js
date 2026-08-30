@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', '.amplify', 'amplify_outputs.json']),
+  globalIgnores(['dist', '.amplify', 'amplify_outputs.json', 'aws-app/api/**/*.js', 'aws-app/infra/**/*.js']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
