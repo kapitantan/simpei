@@ -1,0 +1,8 @@
+{
+  "name": "simpei-zod-layer",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "zod": "^4.5.4"
+  }
+}
